@@ -48,8 +48,14 @@ class Dlknn (object):
         new_X = self.fitted_pca.transform(X)
         return new_X
 
+    def pca_fit_transform(self, train_X, test_X):
+        self.pca_fit(train_X)
+        pca_train = self.pca_transform(train_X)
+        pca_test = self.pca_transform(test_X)
+        return pca_train, pca_test
+
     def calculate_inverse_euclidean(self, train_X, test_image, train_y):
-        distances = [(1/euclidean(test_image,n[0]) , n[1]) for n in zip(train_X, train_y) ]
+        distances = [(1/euclidean(test_image, n[0]) , n[1]) for n in zip(train_X, train_y) ]
         distances = sorted(distances, key=lambda x:x[0], reverse=True)[:self.K]
         return distances
 
@@ -67,16 +73,16 @@ class Dlknn (object):
 
 def load_args(args='sys'):
     if args == 'sys':
-        return sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+        return int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]
     else:
-        return 5, 100, 10, "C:/Users/vatsal/OneDrive/Deep Learning/Data/data_batch_1"
+        return 5, 100, 10, "C:/Users/vatsal/OneDrive/Deep_Learning/Data/data_batch_1"
 
+def main():
+        k, d, n, PATH_TO_DATA = load_args('sys')
+        knn = Dlknn(K=k, D=d, N=n, PATH_TO_DATA=PATH_TO_DATA)
+        train_X, train_y, test_X, test_y = knn.grayscale_transform()
+        train_X, test_X = knn.pca_fit_transform(train_X, test_X)
+        knn.predict(train_X, test_X, train_y, test_y)
 
 if __name__ == '__main__':
-    k, d, n, PATH_TO_DATA = load_args('default')
-    knn = Dlknn(K=k, D=d, N=n, PATH_TO_DATA=PATH_TO_DATA)
-    train_X, train_y, test_X, test_y = knn.grayscale_transform()
-    knn.pca_fit(train_X)
-    pca_train = knn.pca_transform(train_X)
-    pca_test = knn.pca_transform(test_X)
-    knn.predict(pca_train, pca_test, train_y, test_y)
+    main()

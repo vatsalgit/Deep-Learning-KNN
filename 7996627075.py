@@ -2,11 +2,11 @@ import sys
 import numpy as np
 import pickle
 from sklearn.decomposition import PCA
-
+from scipy.spatial.distance import euclidean
 
 class Dlknn (object):
 
-    def __init__(self, K, N, D, PATH_TO_DATA, **kwargs):
+    def __init__(self, K, D, N, PATH_TO_DATA, **kwargs):
         self.K = K
         self.N = N
         self.D = D
@@ -29,7 +29,7 @@ class Dlknn (object):
     def convert_to_grayscale(X):
         new_image = []
         for image in X:
-            R , G, B = image[:1024], image[1025:2049], image[2048:]
+            R , G, B = image[:1024], image[1024:2048], image[2048:]
             gray = (0.299 * R) + (0.587 * G) + (0.114 * B)
             new_image.append(gray)
         return new_image
@@ -49,7 +49,7 @@ class Dlknn (object):
         return new_X
 
     def calculate_inverse_euclidean(self, train_X, test_image, train_y):
-        distances = [(np.sum(1/abs(test_image-n[0])**2) , n[1]) for n in zip(train_X, train_y) ]
+        distances = [(1/euclidean(test_image,n[0]) , n[1]) for n in zip(train_X, train_y) ]
         distances = sorted(distances, key=lambda x:x[0], reverse=True)[:self.K]
         return distances
 
@@ -74,7 +74,7 @@ def load_args(args='sys'):
 
 if __name__ == '__main__':
     k, d, n, PATH_TO_DATA = load_args('default')
-    knn = Dlknn(k, d, n, PATH_TO_DATA)
+    knn = Dlknn(K=k, D=d, N=n, PATH_TO_DATA=PATH_TO_DATA)
     train_X, train_y, test_X, test_y = knn.grayscale_transform()
     knn.pca_fit(train_X)
     pca_train = knn.pca_transform(train_X)
